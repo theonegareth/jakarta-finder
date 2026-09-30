@@ -35,6 +35,9 @@
 		.row .pct { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
 		#map { display: block; width: 100%; height: auto; margin-bottom: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
 		#map path { fill: var(--land); stroke: var(--edge); stroke-width: .6; transition: fill .5s ease-out; }
+		#map .inset { fill: var(--bg); stroke: var(--line); }
+		#map .inset-label { fill: var(--muted); font-size: 11px; }
+		#map path.island { stroke: var(--muted); stroke-width: 3; stroke-linejoin: round; }
 		#map path:hover { stroke: var(--fg); stroke-width: 1.2; }
 		.error { color: var(--pusat); }
 		#more { margin-top: 12px; background: none; color: var(--muted); border: 1px solid var(--line); }

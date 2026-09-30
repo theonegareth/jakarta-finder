@@ -29,27 +29,49 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text = "
 	return e;
 }
 
+function bounds(pts: [number, number][]) {
+	const [x0, x1] = [Math.min(...pts.map((p) => p[0])), Math.max(...pts.map((p) => p[0]))];
+	const [y0, y1] = [Math.min(...pts.map((p) => p[1])), Math.max(...pts.map((p) => p[1]))];
+	return { x0, x1, y0, y1, kx: Math.cos(((y0 + y1) / 2) * (Math.PI / 180)) };
+}
+
 async function drawMap() {
 	const { features } = (await (await fetch("/districts.geojson")).json()) as { features: Feature[] };
 	const polys = (g: Geometry) => (g.type === "Polygon" ? [g.coordinates] : g.coordinates);
-	// ponytail: bounds skip Kepulauan Seribu, so its islands sit off the top edge; it still shows in the list
-	const pts = features.filter((f) => f.properties.city !== "Kepulauan Seribu").flatMap((f) => polys(f.geometry).flat(2));
-	const [x0, x1] = [Math.min(...pts.map((p) => p[0])), Math.max(...pts.map((p) => p[0]))];
-	const [y0, y1] = [Math.min(...pts.map((p) => p[1])), Math.max(...pts.map((p) => p[1]))];
-	const kx = Math.cos(((y0 + y1) / 2) * (Math.PI / 180));
-	const s = W / ((x1 - x0) * kx);
-	svg.setAttribute("viewBox", `0 0 ${W} ${Math.round((y1 - y0) * s)}`);
+	const isIsland = (f: Feature) => f.properties.city === "Kepulauan Seribu";
+	const ptsOf = (fs: Feature[]) => fs.flatMap((f) => polys(f.geometry).flat(2));
 
-	const project = ([lon, lat]: [number, number]) => `${((lon - x0) * kx * s).toFixed(1)},${((y1 - lat) * s).toFixed(1)}`;
+	const main = bounds(ptsOf(features.filter((f) => !isIsland(f))));
+	const s = W / ((main.x1 - main.x0) * main.kx);
+	const H = Math.round((main.y1 - main.y0) * s);
+	svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+
+	// Kepulauan Seribu reaches 80 km out to sea, so it gets an inset in the open water of Jakarta Bay, roughly where it really is
+	const box = { x: 300, y: 8, w: 120, h: 124 };
+	const isl = bounds(ptsOf(features.filter(isIsland)));
+	const si = Math.min((box.w - 16) / ((isl.x1 - isl.x0) * isl.kx), (box.h - 30) / (isl.y1 - isl.y0));
+	const padX = (box.w - (isl.x1 - isl.x0) * isl.kx * si) / 2;
+	const frame = document.createElementNS(SVG, "rect");
+	for (const [k, v] of Object.entries({ x: box.x, y: box.y, width: box.w, height: box.h, rx: 6, class: "inset" })) frame.setAttribute(k, String(v));
+	const label = document.createElementNS(SVG, "text");
+	for (const [k, v] of Object.entries({ x: box.x + 8, y: box.y + 16, class: "inset-label" })) label.setAttribute(k, String(v));
+	label.textContent = "Kep. Seribu";
+
+	const fit = (f: Feature) => isIsland(f)
+		? ([lon, lat]: [number, number]) => `${(box.x + padX + (lon - isl.x0) * isl.kx * si).toFixed(1)},${(box.y + 22 + (isl.y1 - lat) * si).toFixed(1)}`
+		: ([lon, lat]: [number, number]) => `${((lon - main.x0) * main.kx * s).toFixed(1)},${((main.y1 - lat) * s).toFixed(1)}`;
 	for (const f of features) {
+		const project = fit(f);
 		const path = document.createElementNS(SVG, "path");
 		path.setAttribute("d", polys(f.geometry).flatMap((poly) => poly.map((ring) => `M${ring.map(project).join("L")}Z`)).join(""));
+		if (isIsland(f)) path.classList.add("island");
 		const title = document.createElementNS(SVG, "title");
 		title.textContent = `${f.properties.name}, ${f.properties.city}`;
 		path.append(title);
 		paths.set(f.properties.name, path);
 		svg.append(path);
 	}
+	svg.append(frame, label, ...svg.querySelectorAll("path.island"));
 }
 
 function shade(r: Result) {
@@ -58,7 +80,10 @@ function shade(r: Result) {
 		const path = paths.get(row.district);
 		if (!path) continue;
 		// sqrt so a 3% runner-up still shows next to an 80% pick
-		path.style.fill = `color-mix(in oklab, var(--hot) ${Math.round(Math.sqrt(row.p / max) * 100)}%, var(--land))`;
+		const heat = Math.round(Math.sqrt(row.p / max) * 100);
+		path.style.fill = `color-mix(in oklab, var(--hot) ${heat}%, var(--land))`;
+		// islands are specks at inset scale, so a fat stroke in the same colour is what reads
+		if (path.classList.contains("island")) path.style.stroke = `color-mix(in oklab, var(--hot) ${heat}%, var(--muted))`;
 		path.querySelector("title")!.textContent = `${row.district}, ${row.city}: ${(row.p * 100).toFixed(1)}%`;
 	}
 }
