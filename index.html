@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Jakarta Finder</title>
+	<style>
+		:root {
+			--bg: #fafaf7; --fg: #1c1c1a; --muted: #6b6b66; --line: #e4e3dc; --card: #fff;
+			--pusat: #d9480f; --utara: #1971c2; --barat: #2f9e44; --selatan: #9c36b5;
+			--timur: #e8590c; --seribu: #0c8599; --bodetabek: #868e96; --elsewhere: #adb5bd;
+			--land: #eceae2; --edge: #fafaf7; --hot: #c92a2a;
+		}
+		@media (prefers-color-scheme: dark) {
+			:root { --bg: #151514; --fg: #ecebe6; --muted: #9a9993; --line: #2c2c2a; --card: #1e1e1c; --land: #2a2a27; --edge: #151514; --hot: #ff6b6b; }
+		}
+		* { box-sizing: border-box; }
+		body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.4 system-ui, sans-serif; }
+		main { max-width: 720px; margin: 0 auto; padding: 32px 16px; }
+		h1 { margin: 0 0 4px; font-size: 26px; }
+		p.sub { margin: 0 0 20px; color: var(--muted); }
+		form { display: flex; gap: 8px; }
+		input { flex: 1; min-width: 0; padding: 10px 12px; font: inherit; color: inherit; background: var(--card); border: 1px solid var(--line); border-radius: 8px; }
+		button { padding: 10px 16px; font: inherit; border: 0; border-radius: 8px; background: var(--fg); color: var(--bg); cursor: pointer; }
+		button:disabled { opacity: .5; cursor: wait; }
+		.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 24px; }
+		.chips button { padding: 4px 10px; font-size: 13px; background: var(--card); color: var(--fg); border: 1px solid var(--line); }
+		.pick { padding: 16px; margin-bottom: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+		.pick b { font-size: 22px; }
+		.pick span { color: var(--muted); }
+		.row { display: grid; grid-template-columns: 170px 1fr 52px; align-items: center; gap: 10px; padding: 3px 0; }
+		.row .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+		.row .name small { color: var(--muted); }
+		.bar { height: 14px; border-radius: 3px; min-width: 2px; transition: width .5s ease-out; }
+		.row .pct { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
+		#map { display: block; width: 100%; height: auto; margin-bottom: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+		#map path { fill: var(--land); stroke: var(--edge); stroke-width: .6; transition: fill .5s ease-out; }
+		#map path:hover { stroke: var(--fg); stroke-width: 1.2; }
+		.error { color: var(--pusat); }
+		#more { margin-top: 12px; background: none; color: var(--muted); border: 1px solid var(--line); }
+		@media (max-width: 480px) { .row { grid-template-columns: 120px 1fr 44px; } }
+	</style>
+</head>
+<body>
+	<main>
+		<h1>Jakarta Finder</h1>
+		<p class="sub">Name a place, a food, a vibe. jev spreads its confidence across all 185 kecamatan of greater Jakarta.</p>
+		<form id="form">
+			<input id="prompt" placeholder="Monas, nasi uduk, macet parah, kantor pajak…" maxlength="500" autofocus>
+			<button id="go">Find</button>
+		</form>
+		<div class="chips" id="chips"></div>
+		<svg id="map" role="img" aria-label="Map of Jabodetabek kecamatan shaded by probability"></svg>
+		<div id="out"></div>
+	</main>
+	<script type="module" src="./app.ts"></script>
+</body>
+</html>
