@@ -48,5 +48,12 @@ const out = features.map((f) => {
 });
 
 await Bun.write("/tmp/jabodetabek-raw.geojson", JSON.stringify({ type: "FeatureCollection", features: out }));
-await $`bunx mapshaper /tmp/jabodetabek-raw.geojson -dissolve code copy-fields=name,city -simplify 8% keep-shapes -o precision=0.0001 districts.geojson`;
+// percentage simplify keeps one ring per feature, which erased 114 of Kepulauan Seribu's 116 islands; islands go through unsimplified
+const shape = (filter: string, simplify: string[]) =>
+	$`bunx mapshaper /tmp/jabodetabek-raw.geojson -dissolve code copy-fields=name,city -filter ${filter} ${simplify} -o precision=0.0001 format=geojson -`.json() as Promise<{ features: unknown[] }>;
+const [land, islands] = await Promise.all([
+	shape(`!code.startsWith("3101")`, ["-simplify", "8%", "keep-shapes"]),
+	shape(`code.startsWith("3101")`, []),
+]);
+await Bun.write("districts.geojson", JSON.stringify({ type: "FeatureCollection", features: [...land.features, ...islands.features] }));
 console.log(`${nameOf.size} kecamatan → districts.geojson`);
