@@ -6,6 +6,23 @@ const OUTSIDE = "Outside Greater Jakarta";
 // cities below this share skip the second stage; their kecamatan read as 0
 const CITY_FLOOR = 0.02;
 const PROVINCES: Record<string, string> = { "31": "DKI Jakarta", "32": "Jawa Barat", "36": "Banten" };
+// well-known places per city, so jev can place a landmark it half-knows; eval.ts holds out places not named here
+const CITY_HINTS: Record<string, string> = {
+	"Jakarta Pusat": "central Jakarta: Monas, Bundaran HI and Jalan Thamrin, Istana Merdeka, Senayan and Gelora Bung Karno, Tanah Abang market, Menteng, Kemayoran, Pasar Baru",
+	"Jakarta Utara": "north Jakarta on the coast: Tanjung Priok port, Sunda Kelapa harbour, Pantai Indah Kapuk (PIK), Pluit, Kelapa Gading, Sunter",
+	"Jakarta Barat": "west Jakarta: Kota Tua and Fatahillah square, Glodok chinatown, Grogol, Slipi, Kebon Jeruk, Cengkareng",
+	"Jakarta Selatan": "south Jakarta: Blok M, Kemang, SCBD, Kuningan, Senopati, Ragunan zoo, Pasar Minggu",
+	"Jakarta Timur": "east Jakarta: Taman Mini Indonesia Indah, Halim Perdanakusuma airport, Jatinegara, Rawamangun, Cawang, Pulo Gadung",
+	"Kepulauan Seribu": "the Thousand Islands in Jakarta Bay: Pulau Pramuka, Pulau Untung Jawa, Pulau Tidung",
+	"Kota Bogor": "Bogor city: Kebun Raya Bogor botanical garden, Istana Bogor, the Bogor city centre",
+	"Kabupaten Bogor": "the regency around Bogor city: Cibinong, Sentul, Puncak and Cisarua, Taman Safari",
+	"Kota Depok": "Depok city between Jakarta and Bogor: Universitas Indonesia campus, Jalan Margonda Raya, Cinere, Sawangan, Cimanggis",
+	"Kota Tangerang": "Tangerang city west of Jakarta: Lippo Karawaci, Cipondoh, Ciledug, Pasar Lama Tangerang",
+	"Kota Tangerang Selatan": "South Tangerang: BSD City and Serpong, Alam Sutera, Bintaro Jaya, Pamulang, Ciputat",
+	"Kabupaten Tangerang": "the regency around Tangerang: Gading Serpong, the western side of BSD City around ICE BSD, PIK 2, Tigaraksa, Cikupa, Balaraja",
+	"Kota Bekasi": "Bekasi city east of Jakarta: Summarecon Bekasi, Harapan Indah, Grand Galaxy, Pondok Gede, Jatiasih",
+	"Kabupaten Bekasi": "the regency around Bekasi: Cikarang and its industrial estates (Jababeka, Lippo Cikarang), Meikarta, Tambun, Babelan",
+};
 
 type Props = { code: string; name: string; city: string };
 const MAP_PATH = `${import.meta.dir}/districts.geojson`;
@@ -19,7 +36,7 @@ const cityQuestion = {
 	type: "choice",
 	instructions: "Which city or regency of greater Jakarta (Jabodetabek) is this place, landmark, food, event or description most associated with?",
 	criteria: {
-		...Object.fromEntries([...byCity].map(([city, ds]) => [city, `${city}, ${provinceOf(ds[0])}`])),
+		...Object.fromEntries([...byCity].map(([city, ds]) => [city, `${city}, ${provinceOf(ds[0])}: ${CITY_HINTS[city]}`])),
 		[OUTSIDE]: "somewhere with no link to Jakarta or its satellite cities: another Indonesian region or another country",
 	},
 };
