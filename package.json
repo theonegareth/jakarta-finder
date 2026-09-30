@@ -1,0 +1,14 @@
+{
+	"name": "jakarta-finder",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "bun --hot server.ts",
+		"typecheck": "tsc --noEmit"
+	},
+	"devDependencies": {
+		"@types/bun": "latest",
+		"mapshaper": "^0.7.70",
+		"typescript": "^5"
+	}
+}
