@@ -1,4 +1,4 @@
-import type { Result } from "./server.ts";
+import type { Result } from "./jev.ts";
 
 const EXAMPLES = ["Monas", "Blok M", "Kota Tua", "Pantai Indah Kapuk", "BSD City", "Kebun Raya Bogor", "Kerak telor", "Stadion GBK", "Kampus UI", "Merlion"];
 const COLORS: Record<string, string> = {
